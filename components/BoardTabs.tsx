@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import { ScrollView, StyleSheet, Text } from 'react-native';
+import { PressableScale } from '@/components/PressableScale';
 import { boardColor, colors, fonts } from '@/constants/theme';
 import type { BoardId } from '@/lib/types';
 
@@ -21,13 +22,14 @@ export function BoardTabs({ active, onChange }: { active: BoardId; onChange: (b:
       {BOARDS.map(({ id, label }) => {
         const isActive = id === active;
         return (
-          <Pressable
+          <PressableScale
             key={id}
+            scaleTo={0.9}
             onPress={() => onChange(id)}
             style={[styles.pill, isActive && { backgroundColor: boardColor(id) }]}
           >
             <Text style={[styles.label, isActive && styles.labelActive]}>{label}</Text>
-          </Pressable>
+          </PressableScale>
         );
       })}
     </ScrollView>

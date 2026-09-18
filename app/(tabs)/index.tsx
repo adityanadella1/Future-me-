@@ -3,37 +3,55 @@ import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BadgeUnlock } from '@/components/BadgeUnlock';
 import { Bin } from '@/components/Bin';
+import { BookmarkTab } from '@/components/BookmarkTab';
 import { BoardTabs } from '@/components/BoardTabs';
+import { PressableScale } from '@/components/PressableScale';
 import { StickyNote } from '@/components/StickyNote';
 import { TaskComposer } from '@/components/TaskComposer';
 import { Toast } from '@/components/Toast';
 import { colors, fonts } from '@/constants/theme';
+import { BADGES } from '@/lib/badges';
 import { useAppState } from '@/lib/store';
-import type { BoardId, Task } from '@/lib/types';
+import type { Badge, BadgeId, BoardId, Task } from '@/lib/types';
 
-const GREETINGS: Record<BoardId, string> = {
-  today: 'Good morning',
+const EYEBROWS: Partial<Record<BoardId, string>> = {
   tomorrow: 'Coming up',
-  week: 'This week',
+  week: 'Plan ahead',
   someday: 'Someday & goals',
 };
 
+const HEADINGS: Record<BoardId, string> = {
+  today: 'Good morning ☀️',
+  tomorrow: 'Tomorrow',
+  week: 'This Week',
+  someday: 'Future Board',
+};
+
 export default function BoardsScreen() {
-  const { state, addTask, editTask, completeTask, doLater, deleteTask } = useAppState();
+  const { state, addTask, editTask, completeTask, doLater, deleteTask, restoreBookmark } = useAppState();
   const insets = useSafeAreaInsets();
   const [active, setActive] = useState<BoardId>('today');
   const [composerOpen, setComposerOpen] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [celebrating, setCelebrating] = useState<Badge | null>(null);
 
   const tasks = useMemo(() => state.tasks.filter((t) => t.board === active && !t.done), [state.tasks, active]);
   const totalToday = state.tasks.filter((t) => t.board === active).length;
   const doneToday = totalToday - tasks.length;
 
+  const celebrateBadges = (earnedBadges: BadgeId[]) => {
+    if (!earnedBadges.length) return;
+    const badge = BADGES.find((b) => b.id === earnedBadges[0]);
+    if (badge) setCelebrating(badge);
+  };
+
   const handleComplete = (id: string) => {
     const { pointsGained, earnedBadges } = completeTask(id);
-    setToast(earnedBadges.length ? `Badge unlocked! +${pointsGained} pts` : `+${pointsGained} pts`);
+    setToast(`+${pointsGained} pts`);
+    celebrateBadges(earnedBadges);
   };
 
   const handleDelete = (id: string) => {
@@ -57,10 +75,11 @@ export default function BoardsScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
       <Toast message={toast} onHide={() => setToast(null)} />
+      <BadgeUnlock badge={celebrating} onDone={() => setCelebrating(null)} />
       <View style={styles.header}>
         <View>
-          <Text style={styles.date}>{dateLabel}</Text>
-          <Text style={styles.greeting}>{GREETINGS[active]}</Text>
+          <Text style={styles.date}>{EYEBROWS[active] ?? dateLabel}</Text>
+          <Text style={styles.greeting}>{HEADINGS[active]}</Text>
         </View>
         <View style={styles.streak}>
           <Text style={styles.streakEmoji}>🔥</Text>
@@ -91,23 +110,27 @@ export default function BoardsScreen() {
             <FutureMeCard count={state.futureMe.length} onPress={() => router.push('/future-me')} />
           ) : null
         }
-        renderItem={({ item }) => (
-          <StickyNote
-            task={item}
-            hapticsEnabled={state.settings.hapticsEnabled}
-            onComplete={handleComplete}
-            onDoLater={doLater}
-            onDelete={handleDelete}
-            onPress={openComposer}
-          />
-        )}
+        renderItem={({ item }) =>
+          item.bookmarked ? (
+            <BookmarkTab task={item} onRestore={restoreBookmark} />
+          ) : (
+            <StickyNote
+              task={item}
+              hapticsEnabled={state.settings.hapticsEnabled}
+              onComplete={handleComplete}
+              onDoLater={doLater}
+              onDelete={handleDelete}
+              onPress={openComposer}
+            />
+          )
+        }
       />
 
       <Bin />
 
-      <Pressable style={[styles.fab, { bottom: insets.bottom + 24 }]} onPress={() => openComposer()}>
+      <PressableScale style={[styles.fab, { bottom: insets.bottom + 24 }]} onPress={() => openComposer()}>
         <Ionicons name="add" size={28} color="#fff" />
-      </Pressable>
+      </PressableScale>
 
       <TaskComposer
         visible={composerOpen}

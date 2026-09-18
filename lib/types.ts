@@ -9,7 +9,7 @@ export type Task = {
   done: boolean;
   createdAt: number;
   completedAt?: number;
-  movedFrom?: BoardId;
+  bookmarked?: boolean;
 };
 
 export type FutureMeEntry = {

@@ -1,5 +1,7 @@
+import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import React from 'react';
-import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Share, StyleSheet, Switch, Text, View } from 'react-native';
 import { colors, fonts, radii } from '@/constants/theme';
 import type { AppSettings } from '@/lib/types';
 import { useAppState } from '@/lib/store';
@@ -30,6 +32,14 @@ export default function SettingsScreen() {
     </View>
   );
 
+  const exportData = () => {
+    Share.share({ message: JSON.stringify(state, null, 2), title: 'Future Me data export' });
+  };
+
+  const showAbout = () => {
+    Alert.alert('Future Me', `Version ${Constants.expoConfig?.version ?? '1.0.0'}\nA paper-inspired productivity app.`);
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
       <Text style={styles.sectionLabel}>FEEL</Text>
@@ -37,6 +47,18 @@ export default function SettingsScreen() {
 
       <Text style={styles.sectionLabel}>NOTIFICATIONS</Text>
       <View style={styles.card}>{NOTIFICATIONS.map(renderRow)}</View>
+
+      <Text style={styles.sectionLabel}>GENERAL</Text>
+      <View style={styles.card}>
+        <Pressable style={styles.row} onPress={exportData}>
+          <Text style={styles.linkLabel}>Export my data</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+        </Pressable>
+        <Pressable style={[styles.row, { borderBottomWidth: 0 }]} onPress={showAbout}>
+          <Text style={styles.linkLabel}>About Future Me</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+        </Pressable>
+      </View>
     </ScrollView>
   );
 }
@@ -55,4 +77,5 @@ const styles = StyleSheet.create({
     borderBottomColor: '#00000012',
   },
   rowLabel: { fontFamily: fonts.body, fontSize: 15, color: colors.ink },
+  linkLabel: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.tomorrow },
 });

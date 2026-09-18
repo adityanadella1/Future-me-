@@ -18,6 +18,10 @@ import type { Task } from '@/lib/types';
 const SWIPE_THRESHOLD = 110;
 const SETTLE = Easing.bezier(0.22, 1, 0.36, 1);
 
+function logDropDebug(px: number, py: number, bin: Rect, hit: boolean, origin: Rect) {
+  console.log('DROP_DEBUG', JSON.stringify({ px, py, bin, hit, origin }));
+}
+
 export function StickyNote({
   task,
   hapticsEnabled,
@@ -97,7 +101,9 @@ export function StickyNote({
         const rect = origin.value;
         const px = rect.x + rect.width / 2 + translateX.value;
         const py = rect.y + rect.height / 2 + translateY.value;
-        if (binRect.value.width > 0 && rectsIntersect(px, py, binRect.value)) {
+        const hit = binRect.value.width > 0 && rectsIntersect(px, py, binRect.value);
+        runOnJS(logDropDebug)(Math.round(px), Math.round(py), binRect.value, hit, rect);
+        if (hit) {
           confirmDelete();
         } else {
           runOnJS(fireHaptic)(hapticsEnabled, 'light');
@@ -106,13 +112,13 @@ export function StickyNote({
         return;
       }
       if (e.translationX <= -SWIPE_THRESHOLD) {
-        translateX.value = withTiming(-500, { duration: 260, easing: Easing.out(Easing.cubic) });
-        runOnJS(fireHaptic)(hapticsEnabled, 'success');
-        runOnJS(onComplete)(task.id);
-      } else if (e.translationX >= SWIPE_THRESHOLD) {
-        translateX.value = withTiming(500, { duration: 300, easing: Easing.inOut(Easing.cubic) });
+        translateX.value = withTiming(-500, { duration: 300, easing: Easing.inOut(Easing.cubic) });
         runOnJS(fireHaptic)(hapticsEnabled, 'light');
         runOnJS(onDoLater)(task.id);
+      } else if (e.translationX >= SWIPE_THRESHOLD) {
+        translateX.value = withTiming(500, { duration: 260, easing: Easing.out(Easing.cubic) });
+        runOnJS(fireHaptic)(hapticsEnabled, 'success');
+        runOnJS(onComplete)(task.id);
       } else {
         translateX.value = withSpring(0);
       }
@@ -157,21 +163,16 @@ export function StickyNote({
         onLayout={measure}
         style={[styles.card, { backgroundColor: boardTint[task.board] }, shadow.note, cardStyle]}
       >
+        <Animated.View style={[styles.tape, contentStyle]} />
         <Animated.View style={contentStyle}>
           <Pressable onPress={() => onPress(task)} disabled={crumpledJS}>
             <View style={styles.headerRow}>
               <Text style={[styles.eyebrow, { color: boardColorFor(task.board) }]}>
                 {task.time ? task.time.toUpperCase() : 'ANYTIME'}
               </Text>
-              {task.movedFrom ? (
-                <View style={styles.movedChip}>
-                  <Ionicons name="arrow-forward" size={12} color={colors.ink} />
-                  <Text style={styles.movedChipText}>moved from {task.movedFrom}</Text>
-                </View>
-              ) : null}
             </View>
             <Text style={styles.title}>{task.title}</Text>
-            {task.note ? <Text style={styles.note}>{task.note}</Text> : null}
+            <Text style={styles.note}>{task.note || 'Hold to crumple & discard'}</Text>
           </Pressable>
           <View style={styles.actionsRow}>
             <Text style={styles.hintLeft}>{'<'} Do later</Text>
@@ -193,18 +194,19 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 16,
   },
+  tape: {
+    position: 'absolute',
+    top: -8,
+    left: '50%',
+    marginLeft: -22,
+    width: 44,
+    height: 18,
+    backgroundColor: '#FFFFFFB0',
+    transform: [{ rotate: '-2deg' }],
+    borderRadius: 2,
+  },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   eyebrow: { fontFamily: fonts.bodySemiBold, fontSize: 12, letterSpacing: 0.5 },
-  movedChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#FFFFFFAA',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 999,
-  },
-  movedChipText: { fontFamily: fonts.bodyMedium, fontSize: 11, color: colors.ink },
   title: { fontFamily: fonts.display, fontSize: 20, color: colors.ink, marginTop: 6 },
   note: { fontFamily: fonts.body, fontSize: 14, color: colors.ink, opacity: 0.7, marginTop: 4 },
   actionsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 14 },

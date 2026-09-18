@@ -19,6 +19,7 @@ export function Bin() {
   const measure = () => {
     ref.current?.measureInWindow((x, y, width, height) => {
       binRect.value = { x, y, width, height };
+      console.log('BIN_DEBUG', JSON.stringify({ x, y, width, height }));
     });
   };
 

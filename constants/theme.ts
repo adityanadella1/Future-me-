@@ -1,26 +1,26 @@
 import type { BoardId } from '@/lib/types';
 
 export const colors = {
-  today: '#FF9466',
-  tomorrow: '#74C6E8',
-  week: '#8FBF8A',
-  someday: '#B39DDB',
-  paper: '#F7F2E7',
-  ink: '#2B2620',
-  gold: '#E0A526',
-  success: '#4CAF7D',
-  danger: '#C1594B',
-  muted: '#9A9184',
+  today: '#F2703F',
+  tomorrow: '#4B9FCC',
+  week: '#5F9E68',
+  someday: '#8D6DB8',
+  paper: '#F6EFE1',
+  ink: '#1E1A16',
+  gold: '#C5952E',
+  success: '#39825C',
+  danger: '#A8402F',
+  muted: '#867A6B',
 } as const;
 
 export const boardColor = (board: BoardId): string => colors[board];
 
 // Each board's note gets a soft pastel wash of its accent color as background.
 export const boardTint: Record<BoardId, string> = {
-  today: '#FFE7DA',
-  tomorrow: '#DCF0FA',
-  week: '#E3F1E1',
-  someday: '#EDE6F7',
+  today: '#F8D9C4',
+  tomorrow: '#CFE6F2',
+  week: '#D5E8D6',
+  someday: '#E2D6EF',
 };
 
 export const boardLabel: Record<BoardId, string> = {

@@ -58,6 +58,13 @@ export default function StatsScreen() {
               return <View key={d} style={[styles.heatCell, { backgroundColor: colors.success, opacity }]} />;
             })}
           </View>
+          <View style={styles.legendRow}>
+            <Text style={styles.legendLabel}>Less</Text>
+            {[0.15, 0.4, 0.65, 0.9, 1].map((opacity) => (
+              <View key={opacity} style={[styles.legendCell, { backgroundColor: colors.success, opacity }]} />
+            ))}
+            <Text style={styles.legendLabel}>More</Text>
+          </View>
         </View>
         <View style={[styles.card, styles.half, styles.centerCard]}>
           <Text style={styles.bigNumber}>{avg}</Text>
@@ -106,6 +113,9 @@ const styles = StyleSheet.create({
   streakBadge: { fontFamily: fonts.hand, fontSize: 16, color: colors.gold },
   heatmap: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 12, width: 7 * 16 + 6 * 4 },
   heatCell: { width: 16, height: 16, borderRadius: 3 },
+  legendRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 10 },
+  legendLabel: { fontFamily: fonts.body, fontSize: 10, color: colors.muted, marginHorizontal: 2 },
+  legendCell: { width: 10, height: 10, borderRadius: 2, backgroundColor: colors.success },
   bigNumber: { fontFamily: fonts.display, fontSize: 28, color: colors.ink },
   smallLabel: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, marginTop: 2 },
   winsCard: { backgroundColor: '#F5DFAF', borderRadius: radii.lg, padding: 18, marginTop: 4 },

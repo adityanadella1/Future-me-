@@ -7,6 +7,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { MascotDock } from '@/components/MascotDock';
 import { colors } from '@/constants/theme';
 import { BinZoneProvider } from '@/lib/binZone';
 import { StoreProvider } from '@/lib/store';
@@ -45,6 +46,7 @@ export default function RootLayout() {
               <Stack.Screen name="settings" options={{ presentation: 'modal', title: 'Settings' }} />
               <Stack.Screen name="future-me" options={{ presentation: 'modal', title: 'Future Me' }} />
             </Stack>
+            <MascotDock />
           </BinZoneProvider>
         </StoreProvider>
       </SafeAreaProvider>

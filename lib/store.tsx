@@ -3,12 +3,6 @@ import { checkNewBadges, countCompleted } from './badges';
 import { loadState, saveState } from './storage';
 import type { AppSettings, AppState, BadgeId, BoardId, FutureMeEntry, GameState, Task } from './types';
 
-const BOARD_ORDER: BoardId[] = ['today', 'tomorrow', 'week', 'someday'];
-export function nextBoard(board: BoardId): BoardId {
-  const i = BOARD_ORDER.indexOf(board);
-  return BOARD_ORDER[Math.min(i + 1, BOARD_ORDER.length - 1)];
-}
-
 function todayStr(d = new Date()): string {
   return d.toISOString().slice(0, 10);
 }
@@ -47,6 +41,7 @@ type Action =
   | { type: 'EDIT_TASK'; id: string; title: string; note?: string; time?: string }
   | { type: 'COMPLETE_TASK'; id: string; earnedBadges: BadgeId[]; pointsGained: number; now: number }
   | { type: 'DO_LATER'; id: string }
+  | { type: 'RESTORE_BOOKMARK'; id: string }
   | { type: 'DELETE_TASK'; id: string; pointsGained: number }
   | { type: 'ADD_FUTURE_ME'; entry: FutureMeEntry; earnedBadges: BadgeId[] }
   | { type: 'UPDATE_SETTINGS'; settings: Partial<AppSettings> }
@@ -107,9 +102,13 @@ function reducer(state: AppState, action: Action): AppState {
     case 'DO_LATER':
       return {
         ...state,
-        tasks: state.tasks.map((t) =>
-          t.id === action.id ? { ...t, board: nextBoard(t.board), movedFrom: t.board } : t
-        ),
+        tasks: state.tasks.map((t) => (t.id === action.id ? { ...t, bookmarked: true } : t)),
+      };
+
+    case 'RESTORE_BOOKMARK':
+      return {
+        ...state,
+        tasks: state.tasks.map((t) => (t.id === action.id ? { ...t, bookmarked: false } : t)),
       };
 
     case 'DELETE_TASK': {
@@ -201,6 +200,7 @@ export function useAppState() {
         return { pointsGained, earnedBadges };
       },
       doLater: (id: string) => dispatch({ type: 'DO_LATER', id }),
+      restoreBookmark: (id: string) => dispatch({ type: 'RESTORE_BOOKMARK', id }),
       deleteTask: (id: string) => {
         const pointsGained = 3;
         dispatch({ type: 'DELETE_TASK', id, pointsGained });
@@ -213,6 +213,7 @@ export function useAppState() {
           entry: { id: `${Date.now()}`, title, body, createdAt: Date.now() },
           earnedBadges,
         });
+        return { earnedBadges };
       },
       updateSettings: (settings: Partial<AppSettings>) => dispatch({ type: 'UPDATE_SETTINGS', settings }),
     }),

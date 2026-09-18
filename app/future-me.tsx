@@ -1,24 +1,37 @@
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { BadgeUnlock } from '@/components/BadgeUnlock';
 import { colors, fonts, radii, shadow } from '@/constants/theme';
+import { BADGES } from '@/lib/badges';
 import { useAppState } from '@/lib/store';
+import type { Badge } from '@/lib/types';
 
 export default function FutureMeScreen() {
   const { state, addFutureMe } = useAppState();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const [celebrating, setCelebrating] = useState<Badge | null>(null);
 
   const save = () => {
     if (!title.trim() || !body.trim()) return;
-    addFutureMe(title.trim(), body.trim());
+    const { earnedBadges } = addFutureMe(title.trim(), body.trim());
     setTitle('');
     setBody('');
-    router.back();
+    const badge = BADGES.find((b) => b.id === earnedBadges[0]);
+    if (badge) setCelebrating(badge);
+    else router.back();
   };
 
   return (
     <View style={styles.container}>
+      <BadgeUnlock
+        badge={celebrating}
+        onDone={() => {
+          setCelebrating(null);
+          router.back();
+        }}
+      />
       <FlatList
         data={state.futureMe}
         keyExtractor={(e) => e.id}

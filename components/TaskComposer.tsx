@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { BackHandler, StyleSheet, Text, TextInput, View } from 'react-native';
+import { PressableScale } from '@/components/PressableScale';
 import { boardColor, boardLabel, colors, fonts, radii } from '@/constants/theme';
 import type { BoardId, Task } from '@/lib/types';
 
@@ -28,57 +29,66 @@ export function TaskComposer({
     }
   }, [visible, editing]);
 
+  useEffect(() => {
+    if (!visible) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      onClose();
+      return true;
+    });
+    return () => sub.remove();
+  }, [visible, onClose]);
+
   const save = () => {
     if (!title.trim()) return;
     onSave(title.trim(), note.trim(), time.trim());
   };
 
+  if (!visible) return null;
+
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <View style={styles.sheet}>
-          <View style={[styles.badge, { backgroundColor: boardColor(board) }]}>
-            <Text style={styles.badgeText}>{boardLabel[board]}</Text>
-          </View>
-          <Text style={styles.heading}>{editing ? 'Edit task' : 'New sticky note'}</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="What needs doing?"
-            placeholderTextColor="#9A9184"
-            value={title}
-            onChangeText={setTitle}
-            autoFocus
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Details (optional)"
-            placeholderTextColor="#9A9184"
-            value={note}
-            onChangeText={setNote}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Time label, e.g. 9:00 AM (optional)"
-            placeholderTextColor="#9A9184"
-            value={time}
-            onChangeText={setTime}
-          />
-          <View style={styles.row}>
-            <Pressable style={styles.secondary} onPress={onClose}>
-              <Text style={styles.secondaryText}>Cancel</Text>
-            </Pressable>
-            <Pressable style={styles.primary} onPress={save}>
-              <Text style={styles.primaryText}>{editing ? 'Save' : 'Stick it on the board'}</Text>
-            </Pressable>
-          </View>
+    <View style={styles.backdrop}>
+      <View style={styles.sheet}>
+        <View style={[styles.badge, { backgroundColor: boardColor(board) }]}>
+          <Text style={styles.badgeText}>{boardLabel[board]}</Text>
+        </View>
+        <Text style={styles.heading}>{editing ? 'Edit task' : 'New sticky note'}</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="What needs doing?"
+          placeholderTextColor="#9A9184"
+          value={title}
+          onChangeText={setTitle}
+          autoFocus
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Details (optional)"
+          placeholderTextColor="#9A9184"
+          value={note}
+          onChangeText={setNote}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Time label, e.g. 9:00 AM (optional)"
+          placeholderTextColor="#9A9184"
+          value={time}
+          onChangeText={setTime}
+        />
+        <View style={styles.row}>
+          <PressableScale style={styles.secondary} onPress={onClose}>
+            <Text style={styles.secondaryText}>Cancel</Text>
+          </PressableScale>
+          <PressableScale style={styles.primary} onPress={save}>
+            <Text style={styles.primaryText}>{editing ? 'Save' : 'Stick it on the board'}</Text>
+          </PressableScale>
         </View>
       </View>
-    </Modal>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: '#00000055', justifyContent: 'flex-end' },
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: '#00000055', justifyContent: 'flex-end', zIndex: 50 },
   sheet: { backgroundColor: colors.paper, borderTopLeftRadius: radii.lg, borderTopRightRadius: radii.lg, padding: 22 },
   badge: { alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999, marginBottom: 10 },
   badgeText: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: '#fff' },
