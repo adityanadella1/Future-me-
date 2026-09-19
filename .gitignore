@@ -44,3 +44,6 @@ app/.idea/
 
 # Claude Code local state
 .claude/scheduled_tasks.lock
+
+# Regenerable mascot previews (scripts/make_preview_gifs.py)
+scripts/mascot_*.gif
